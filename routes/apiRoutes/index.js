@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const createNewNote = require('../../lib/notes');
-const notes = require('../../db/db.json');
+const { notes } = require('../../db/db.json');
 const uniqid = require('uniqid');
 
 router.get('/notes', (req, res) => {
@@ -18,6 +18,38 @@ router.post('/notes', (req, res) => {
         const note = createNewNote(req.body, notes);
         res.json(note);
     }
+});
+
+router.delete('/notes/:id', (req, res) => {
+    const noteId = req.params.id;
+    fs.readFile(
+        path.join(__dirname, '../db/db.json'),
+        (err, data) => {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
+                return;
+            }
+            const json = JSON.parse(data);
+
+            for (let i = 0; i < json.length; i++) {
+                if (json[i].id === noteId) {
+                    json.splice(i, 1);
+                    return;
+                }
+            }
+            fs.writeFile(
+                path.join(__dirname, '../db/db.json'),
+                JSON.stringify(json), 
+                (err) => {
+                    if(err) {
+                        console.log(err);
+                        res.sendStatus(500);
+                        return;
+                    }
+                    res.send('Successfully deleted');
+                });
+        }); 
 });
 
 module.exports = router;
